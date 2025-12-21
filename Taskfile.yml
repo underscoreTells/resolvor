@@ -1,0 +1,8 @@
+version: "3"
+
+tasks:
+  dev:
+    desc: Run development server from desktop-app directory
+    dir: "{{.ROOT_DIR}}/desktop-app"
+    cmds:
+      - WEBKIT_DISABLE_DMABUF_RENDERER=1 pnpm tauri dev
