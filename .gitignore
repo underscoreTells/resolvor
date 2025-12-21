@@ -118,3 +118,6 @@ htmlcov/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# Local dev data
+data/
