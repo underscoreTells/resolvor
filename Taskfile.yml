@@ -6,3 +6,43 @@ tasks:
     dir: "{{.ROOT_DIR}}/desktop-app"
     cmds:
       - WEBKIT_DISABLE_DMABUF_RENDERER=1 pnpm tauri dev
+
+  generate:
+    desc: Generate types from JSON schemas for all projects
+    cmds:
+      - task: generate:ts
+      - task: generate:py
+      - task: generate:rs
+
+  generate:ts:
+    desc: Generate TypeScript types from JSON schemas
+    dir: "{{.ROOT_DIR}}/desktop-app"
+    cmds:
+      - mkdir -p src/lib/types/generated
+      - pnpm exec json2ts -i ../shared/schemas/messages.schema.json -o src/lib/types/generated/messages.ts --cwd ../shared/schemas
+    sources:
+      - ../shared/schemas/*.schema.json
+    generates:
+      - src/lib/types/generated/*.ts
+
+  generate:py:
+    desc: Generate Python Pydantic models from JSON schemas
+    dir: "{{.ROOT_DIR}}/agent-backend"
+    cmds:
+      - mkdir -p models/generated
+      - uv run datamodel-codegen --input ../shared/schemas/messages.schema.json --output models/generated/messages.py --output-model-type pydantic_v2.BaseModel --use-standard-collections --use-union-operator
+    sources:
+      - ../shared/schemas/*.schema.json
+    generates:
+      - models/generated/*.py
+
+  generate:rs:
+    desc: Generate Rust types from JSON schemas
+    dir: "{{.ROOT_DIR}}/desktop-app/src-tauri"
+    cmds:
+      - mkdir -p src/models/generated
+      - cargo typify ../../shared/schemas/messages.schema.json -o src/models/generated/messages.rs
+    sources:
+      - ../../shared/schemas/*.schema.json
+    generates:
+      - src/models/generated/*.rs

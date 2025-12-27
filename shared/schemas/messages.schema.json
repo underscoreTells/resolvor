@@ -1,0 +1,206 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "messages.schema.json",
+  "title": "Message Types",
+  "description": "Shared message types for the Resolvor agent UI",
+
+  "definitions": {
+    "MessageRole": {
+      "type": "string",
+      "enum": ["user", "assistant", "system", "error"],
+      "description": "The role of the message sender"
+    },
+
+    "MessageStatus": {
+      "type": "string",
+      "enum": ["pending", "streaming", "complete", "error"],
+      "description": "The current status of the message"
+    },
+
+    "ToolCallStatus": {
+      "type": "string",
+      "enum": ["pending", "running", "success", "error"],
+      "description": "The current status of a tool call"
+    },
+
+    "ToolCall": {
+      "type": "object",
+      "description": "Represents a tool/function call made by the agent",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the tool call"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the tool being called"
+        },
+        "arguments": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Arguments passed to the tool"
+        },
+        "result": {
+          "type": ["string", "null"],
+          "description": "Result returned from the tool execution"
+        },
+        "status": {
+          "$ref": "#/definitions/ToolCallStatus"
+        },
+        "started_at": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "Timestamp when the tool call started"
+        },
+        "completed_at": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "Timestamp when the tool call completed"
+        }
+      },
+      "required": ["id", "name", "arguments", "status"],
+      "additionalProperties": false
+    },
+
+    "TextContent": {
+      "type": "object",
+      "description": "A text content block",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "text"
+        },
+        "text": {
+          "type": "string",
+          "description": "The text content, may contain markdown"
+        }
+      },
+      "required": ["type", "text"],
+      "additionalProperties": false
+    },
+
+    "ToolUseContent": {
+      "type": "object",
+      "description": "A tool use content block",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "tool_use"
+        },
+        "tool_call": {
+          "$ref": "#/definitions/ToolCall"
+        }
+      },
+      "required": ["type", "tool_call"],
+      "additionalProperties": false
+    },
+
+    "ToolResultContent": {
+      "type": "object",
+      "description": "A tool result content block",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "tool_result"
+        },
+        "tool_call_id": {
+          "type": "string",
+          "description": "ID of the tool call this result corresponds to"
+        },
+        "result": {
+          "type": "string",
+          "description": "The result of the tool execution"
+        },
+        "is_error": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether the tool execution resulted in an error"
+        }
+      },
+      "required": ["type", "tool_call_id", "result"],
+      "additionalProperties": false
+    },
+
+    "MessageContent": {
+      "oneOf": [
+        { "$ref": "#/definitions/TextContent" },
+        { "$ref": "#/definitions/ToolUseContent" },
+        { "$ref": "#/definitions/ToolResultContent" }
+      ],
+      "description": "A content block within a message"
+    },
+
+    "Message": {
+      "type": "object",
+      "description": "A message in the conversation thread",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the message"
+        },
+        "role": {
+          "$ref": "#/definitions/MessageRole"
+        },
+        "content": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MessageContent"
+          },
+          "description": "Array of content blocks in the message"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the message was created"
+        },
+        "status": {
+          "$ref": "#/definitions/MessageStatus"
+        }
+      },
+      "required": ["id", "role", "content", "timestamp", "status"],
+      "additionalProperties": false
+    },
+
+    "Conversation": {
+      "type": "object",
+      "description": "A conversation containing multiple messages",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the conversation"
+        },
+        "title": {
+          "type": ["string", "null"],
+          "description": "Optional title for the conversation"
+        },
+        "messages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Message"
+          },
+          "description": "Messages in the conversation"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the conversation was created"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the conversation was last updated"
+        }
+      },
+      "required": ["id", "messages", "created_at", "updated_at"],
+      "additionalProperties": false
+    }
+  },
+
+  "type": "object",
+  "properties": {
+    "Message": { "$ref": "#/definitions/Message" },
+    "MessageContent": { "$ref": "#/definitions/MessageContent" },
+    "ToolCall": { "$ref": "#/definitions/ToolCall" },
+    "Conversation": { "$ref": "#/definitions/Conversation" }
+  }
+}
